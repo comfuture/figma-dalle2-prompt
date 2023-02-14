@@ -1,0 +1,428 @@
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<form id="dalle">
+  <div class="toolbar">
+    <small class="api-key-hint">Need to setup an API key first ➡️</small>
+    <span class="material-symbols-outlined clickable" onClick="openPreference()">
+      settings
+    </span>
+  </div>
+  <label for="prompt">Prompt</label>
+  <textarea id="prompt" name="prompt" rows="2" spellcheck="false"></textarea>
+  <details>
+    <summary>Advenced</summary>
+    <p class="hint">
+      Inspired by
+      <a href="#" onclick="window.open('https://dallery.gallery/the-dalle-2-prompt-book/', '_blank')">The DALL·E 2
+        Prompt
+        Book</a>
+    </p>
+    <details>
+      <summary>Emotional</summary>
+      <fieldset>
+        <legend>Positive mood, low energy</legend>
+        <label><input type="checkbox" value="light">light</label>
+        <label><input type="checkbox" value="peaceful">peaceful</label>
+        <label><input type="checkbox" value="calm">calm</label>
+        <label><input type="checkbox" value="serene">serene</label>
+        <label><input type="checkbox" value="soothing">soothing</label>
+        <label><input type="checkbox" value="relaxed">relaxed</label>
+        <label><input type="checkbox" value="placid">placid</label>
+        <label><input type="checkbox" value="comforting">comforting</label>
+        <label><input type="checkbox" value="cozy">cozy</label>
+        <label><input type="checkbox" value="tranquil">tranquil</label>
+        <label><input type="checkbox" value="quiet">quiet</label>
+        <label><input type="checkbox" value="pastel">pastel</label>
+        <label><input type="checkbox" value="delicate">delicate</label>
+        <label><input type="checkbox" value="graceful">graceful</label>
+        <label><input type="checkbox" value="subtle">subtle</label>
+        <label><input type="checkbox" value="balmy">balmy</label>
+        <label><input type="checkbox" value="mild">mild</label>
+        <label><input type="checkbox" value="ethereal">ethereal</label>
+        <label><input type="checkbox" value="elegant">elegant</label>
+        <label><input type="checkbox" value="tender">tender</label>
+        <label><input type="checkbox" value="soft light">soft light</label>
+      </fieldset>
+      <fieldset>
+        <legend>Negative mood, low energy</legend>
+        <label><input type="checkbox" value="muted">muted</label>
+        <label><input type="checkbox" value="bleak">bleak</label>
+        <label><input type="checkbox" value="funereal">funereal</label>
+        ...
+      </fieldset>
+    </details>
+    <details>
+      <summary>Structure</summary>
+      <fieldset>
+        <legend>Big and free</legend>
+        <label><input type="checkbox" value="Cuvaceous">Cuvaceous</label>
+        <label><input type="checkbox" value="swirling">swirling</label>
+        <label><input type="checkbox" value="organic">organic</label>
+      </fieldset>
+      <fieldset>
+        <legend>Big and structured</legend>
+        <label><input type="checkbox" value="Monumental">Monumental</label>
+        <label><input type="checkbox" value="imposing">imposing</label>
+        <label><input type="checkbox" value="rigorous">rigorous</label>
+      </fieldset>
+      <fieldset>
+        <legend>Small and structured</legend>
+        <label><input type="checkbox" value="Ornate">Ornate</label>
+        <label><input type="checkbox" value="delicate">delicate</label>
+        <label><input type="checkbox" value="neat">neat</label>
+      </fieldset>
+    </details>
+    <details>
+      <summary>Looks, vibes</summary>
+      <fieldset>
+        <legend>Vaporwave</legend>
+        <label><input type="checkbox" value="neon">neon</label>
+        <label><input type="checkbox" value="pink">pink</label>
+        <label><input type="checkbox" value="geometric">geometric</label>
+      </fieldset>
+      <fieldset>
+        <legend>Post-apocalyptic</legend>
+        <label><input type="checkbox" value="grey">grey</label>
+        <label><input type="checkbox" value="desolate">desolate</label>
+        <label><input type="checkbox" value="stormy">stormy</label>
+      </fieldset>
+    </details>
+  </details>
+  <div class="action-bar">
+    <button type="submit">
+      Generate Image
+    </button>
+    <div class="processing">
+      <span class="material-symbols-outlined spinning">
+        sync
+      </span>
+      Processing...
+    </div>
+  </div>
+</form>
+<dialog id="preference">
+  <div class="titlebar">
+    <h5>Preferences</h5>
+    <span class="material-symbols-outlined clickable" onClick="closePreference()">
+      close
+    </span>
+  </div>
+  <form method="dialog">
+    <label for="api_key">OpenAI API Key</label>
+    <input type="text" id="api_key" name="api_key" spellcheck="false" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+    <p class="hint">
+      Input your own API key to use DALL·E Prompt plugin.
+      <a href="#" onclick="window.open('https://platform.openai.com/account/api-keys', '_blank')">
+        Where to optain
+      </a>
+    </p>
+    <button type="submit" onclick="savePreferences()" style="margin: 0.7em 0">Apply</button>
+  </form>
+</dialog>
+<script>
+  let isReady = false;
+  let isProcessing = false;
+
+  function updateUI() {
+    if (!isReady || isProcessing) {
+      document.querySelector('#prompt').setAttribute('disabled', 'disabled')
+      document.querySelector('.action-bar button[type=submit]').setAttribute('disabled', 'disabled')
+    } else {
+      document.querySelector('#prompt').removeAttribute('disabled')
+      document.querySelector('.action-bar button[type=submit]').removeAttribute('disabled')
+    }
+    document.querySelector('.api-key-hint').style.display = isReady ? 'none' : 'block'
+    document.querySelector('.processing').style.display = isProcessing ? 'block' : 'none'
+  }
+
+  function createElement(tagName, ...props) {
+    const el = document.createElement(tagName);
+    for (const prop of props) {
+      if (typeof prop === 'string') {
+        el.textContent = prop;
+      }
+      if (Array.isArray(prop)) {
+        el.append(...prop);
+      } else if (typeof prop === 'object') {
+        for (const [key, value] of Object.entries(prop)) {
+          el.setAttribute(key, value);
+        }
+      }
+    }
+    return el;
+  }
+  const h = createElement
+
+  const createOption = (value, label = '') => h('label', [h('option', {value}, value), label || value])
+  const createOptionSet = (name, options) => h('fieldset', [
+    h('legend', name),
+    options.map(o => createOption(v))
+  ])
+
+  document.querySelector('#prompt').focus();
+
+  let apiKey;
+
+  // load preferences on startup
+  parent.postMessage({pluginMessage: {type: 'preferences.read'}}, '*');
+
+  // open preferences dialog
+  function openPreference() {
+    document.querySelector('#preference').showModal();
+    parent.postMessage({pluginMessage: {type: 'preferences.read'}}, '*');
+  }
+
+  function closePreference() {
+    document.querySelector('#preference').close();
+  }
+
+  // save preferences
+  function savePreferences() {
+    const apiKey = document.querySelector('#api_key').value;
+    if (apiKey && apiKey.length > 0) {
+      isReady = true;
+      updateUI();
+    }
+    parent.postMessage({pluginMessage: {type: 'preferences.save', data: apiKey}}, '*');
+    closePreference();
+  }
+
+  // document.querySelector('#preference').addEventListener('close', (event) => {
+  //   if (event.returnValue === 'Apply1') {
+  //     console.log('success');
+  //   }
+  // });
+
+  async function generateImage(prompt) {
+    console.log('generateImage with prompt: ', prompt);
+    isProcessing = true;
+    updateUI();
+
+    const resp = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey
+      },
+      body: JSON.stringify({
+        prompt: prompt,
+        n: 1,
+        size: '1024x1024',
+        response_format: 'b64_json'
+      })
+    }).then((response) => response.json());
+
+    const im = Uint8Array.from(atob(resp.data[0].b64_json), c => c.charCodeAt(0))
+    parent.postMessage({
+      pluginMessage: {type: 'image.data', im, prompt}
+    }, '*');
+    isProcessing = false;
+    updateUI();
+  }
+
+  document.querySelector('form#dalle').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const prompt = form.elements.namedItem('prompt');
+    let promptText = prompt.value
+
+    // add modifiers if any is checked
+    const modifiers = new Set([])
+    Array.from(document.querySelectorAll('[type="checkbox"]')).map(el => {
+      if (el.checked) {
+        modifiers.add(el.value);
+      }
+    })
+
+    if (modifiers.size > 0) {
+      promptText = promptText + ', ' + Array.from(modifiers).join(', ')
+    }
+
+    await generateImage(promptText);
+  })
+
+  onmessage = async (event) => {
+    const { type, data } = event.data.pluginMessage;
+    if (type === 'preferences.loaded') {
+      document.querySelector('#api_key').value = data;
+      apiKey = data;
+      if (apiKey && apiKey.length > 0) {
+        isReady = true;
+      }
+      updateUI();
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings:
+      'FILL' 0,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 48
+  }
+</style>
+<style>
+  body {
+    background-color: var(--figma-color-bg);
+    color: var(--figma-color-text);
+    margin: 1em;
+  }
+
+  .hint {
+    font-size: 0.8em;
+    color: var(--figma-color-text-secondary);
+  }
+
+  a {
+    color: #1a73e8;
+  }
+
+  h2 {
+    font-size: 1.5em;
+    font-weight: 400;
+    margin: 0;
+  }
+
+  h5 {
+    margin: 0.25em 0;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 0.25em;
+  }
+
+  label,
+  legend,
+  summary {
+    font-size: 0.75em;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  label {
+    word-break: keep-all;
+  }
+
+  input[type="text"],
+  textarea {
+    padding-bottom: 0.5em;
+    border: solid 1px var(--figma-color-border);
+    border-radius: 2px;
+    background-color: rgba(var(--figma-color-bg) / 0.5);
+    color: var(--figma-color-text);
+    padding: 0.125em;
+  }
+
+  textarea {
+    min-height: 2em;
+    padding: 0.5em;
+  }
+
+  input[type="text"]:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--figma-color-primary);
+  }
+
+  fieldset {
+    border: 1px solid var(--figma-color-border);
+  }
+
+  button[type="submit"] {
+    display: block;
+    border: none;
+    border-radius: 0.25em;
+    background-color: var(--figma-color-bg-brand);
+    /* color: var(--figma-color-text); */
+    color: white;
+    font-weight: 600;
+    padding: 0.5em 1em;
+    cursor: pointer;
+  }
+
+  button[type="submit"]:disabled {
+    border: var(--figma-color-border);
+    background-color: var(--figma-color-bg-brand-disabled);
+    color: var(--figma-color-text-disabled);
+    cursor: not-allowed;
+  }
+
+  .toolbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    align-items: center;
+    gap: 1em;
+  }
+
+  .toolbar small {
+    font-size: 0.8em;
+    color: var(--figma-color-text-secondary);
+  }
+
+  .titlebar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 0.5em;
+    position: sticky;
+    top: 0;
+    background-color: var(--figma-color-bg);
+    border-bottom: solid 1px var(--figma-color-border);
+    padding: 0.5em;
+  }
+
+  .action-bar {
+    position: sticky;
+    bottom: 0;
+    padding: 0.5em 0;
+    background-color: var(--figma-color-bg);
+    display: flex;
+    flex-direction: row;
+    gap: 0.5em;
+  }
+
+  .clickable {
+    cursor: pointer;
+  }
+
+  #preference {
+    width: 28em;
+    padding: 0;
+    border: solid 1px var(--figma-color-border);
+    border-radius: 2px;
+    background-color: var(--figma-color-bg);
+    backdrop-filter: blur(2px);
+    color: var(--figma-color-text);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  #preference form {
+    padding: 0.5em;
+  }
+
+  #result img {
+    max-width: 100%;
+  }
+
+  details>details {
+    margin-left: 1em;
+  }
+
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(-360deg);
+    }
+  }
+</style>

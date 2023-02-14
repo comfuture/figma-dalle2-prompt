@@ -1,0 +1,16 @@
+{
+  "name": "figma-dalle-2-prompt",
+  "version": "1.0.0",
+  "description": "DALL·E Prompt",
+  "main": "code.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "watch": "npm run build -- --watch"
+  },
+  "author": "",
+  "license": "",
+  "devDependencies": {
+    "@figma/plugin-typings": "*",
+    "typescript": "*"
+  }
+}

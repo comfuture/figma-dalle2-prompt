@@ -1,0 +1,10 @@
+{
+  "name": "DALL·E Prompt",
+  "id": "1172198885477402037",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": [
+    "figma"
+  ],
+  "ui": "ui.html"
+}
