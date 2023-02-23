@@ -2,15 +2,20 @@
   href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <form id="dalle">
   <div class="toolbar">
-    <small class="api-key-hint">Need to setup an API key first ➡️</small>
-    <span class="material-symbols-outlined clickable" onClick="openPreference()">
-      settings
-    </span>
+    <div>
+      <h5>Image generation</h5>
+    </div>
+    <div class="settings">
+      <small class="api-key-hint bounce-left">Need to setup an API key first ➡️</small>
+      <span class="material-symbols-outlined clickable" onClick="openPreference()">
+        settings
+      </span>
+    </div>
   </div>
   <label for="prompt">Prompt</label>
   <textarea id="prompt" name="prompt" rows="2" spellcheck="false"></textarea>
   <details>
-    <summary>Advenced</summary>
+    <summary>Advanced</summary>
     <p class="hint">
       Inspired by
       <a href="#" onclick="window.open('https://dallery.gallery/the-dalle-2-prompt-book/', '_blank')">The DALL·E 2
@@ -103,7 +108,7 @@
 <dialog id="preference">
   <div class="titlebar">
     <h5>Preferences</h5>
-    <span class="material-symbols-outlined clickable" onClick="closePreference()">
+    <span class="material-symbols-outlined clickable close-button" onClick="closePreference()">
       close
     </span>
   </div>
@@ -111,10 +116,8 @@
     <label for="api_key">OpenAI API Key</label>
     <input type="text" id="api_key" name="api_key" spellcheck="false" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
     <p class="hint">
-      Input your own API key to use DALL·E Prompt plugin.
-      <a href="#" onclick="window.open('https://platform.openai.com/account/api-keys', '_blank')">
-        Where to optain
-      </a>
+      Input your own <a href="#" onclick="window.open('https://platform.openai.com/account/api-keys', '_blank')">OpenAI API Key</a> to use DALL·E Prompt plugin. <br>
+      Your API key is never stored on any servers. It is stored in plugin's client-side storage.
     </p>
     <button type="submit" onclick="savePreferences()" style="margin: 0.7em 0">Apply</button>
   </form>
@@ -303,6 +306,10 @@
     margin: 0;
   }
 
+  summary {
+    cursor: pointer;
+  }
+
   label {
     word-break: keep-all;
   }
@@ -314,7 +321,7 @@
     border-radius: 2px;
     background-color: rgba(var(--figma-color-bg) / 0.5);
     color: var(--figma-color-text);
-    padding: 0.125em;
+    padding: 0.5em;
   }
 
   textarea {
@@ -351,12 +358,15 @@
     cursor: not-allowed;
   }
 
-  .toolbar {
+  .toolbar, .settings {
     display: flex;
     flex-direction: row;
-    justify-content: end;
     align-items: center;
     gap: 1em;
+  }
+
+  .toolbar {
+    justify-content: space-between;
   }
 
   .toolbar small {
@@ -374,6 +384,7 @@
     background-color: var(--figma-color-bg);
     border-bottom: solid 1px var(--figma-color-border);
     padding: 0.5em;
+    user-select: none;
   }
 
   .action-bar {
@@ -390,6 +401,15 @@
     cursor: pointer;
   }
 
+  .close-button {
+    font-size: 1.2em;
+    padding: 0.2em;
+  }
+
+  .close-button:hover {
+    background-color: rgba(var(--figma-color-text) / 0.5);
+  }
+
   #preference {
     width: 28em;
     padding: 0;
@@ -399,6 +419,7 @@
     backdrop-filter: blur(2px);
     color: var(--figma-color-text);
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.2);
+    animation: appear 0.2s ease-in-out;
   }
 
   #preference form {
@@ -424,5 +445,40 @@
     100% {
       transform: rotate(-360deg);
     }
+  }
+
+  /* bounce left animation */
+  @keyframes bounce-left {
+    0% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(-10px);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  .bounce-left {
+    animation: bounce-left 0.5s ease-in-out infinite;
+  }
+
+  /* dialog appear animation */
+  @keyframes appear {
+    0% {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    90% {
+      opacity: 1;
+      transform: scale(1.025);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .appear {
+    animation: appear 0.125s ease-in-out;
   }
 </style>
