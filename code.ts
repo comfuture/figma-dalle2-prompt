@@ -24,7 +24,7 @@ async function createImage(prompt: string, imageData: Uint8Array, width: number 
   const nodes: SceneNode[] = [];
 
   const frame = figma.createFrame();
-  frame.resizeWithoutConstraints(1024, 1024);
+  frame.resizeWithoutConstraints(width, height);
   frame.name = prompt;
 
   const image = figma.createImage(imageData);
@@ -62,12 +62,11 @@ async function createImage(prompt: string, imageData: Uint8Array, width: number 
   frame.x = minX
   frame.y = maxY + 40
 
-  figma.closePlugin()
-
   figma.currentPage.appendChild(frame);
   nodes.push(frame);
   figma.currentPage.selection = nodes;
   // figma.viewport.scrollAndZoomIntoView(nodes);
+  figma.closePlugin();
 }
 
 figma.ui.onmessage = async (msg: IPCMessage) => {
@@ -79,7 +78,7 @@ figma.ui.onmessage = async (msg: IPCMessage) => {
       await savePreferences(msg.data);
       break;
     case 'image.data':
-      await createImage(msg.prompt, msg.im);
+      await createImage(msg.prompt, msg.im, msg.width, msg.height);
       figma.closePlugin();
       break;
   }

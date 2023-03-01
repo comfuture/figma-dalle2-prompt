@@ -94,15 +94,22 @@
     </details>
   </details>
   <div class="action-bar">
+    <label>
+      Size
+      <select name="size">
+        <option value="1024x1024">1024 x 1024</option>
+        <option value="512x512">512 x 512</option>
+        <option value="256x256">256 x 256</option>
+      </select>
+    </label>
     <button type="submit">
+      <div class="processing">
+        <span class="material-symbols-outlined spinning">
+          sync
+        </span>
+      </div>
       Generate Image
     </button>
-    <div class="processing">
-      <span class="material-symbols-outlined spinning">
-        sync
-      </span>
-      Processing...
-    </div>
   </div>
 </form>
 <dialog id="preference">
@@ -190,14 +197,7 @@
     closePreference();
   }
 
-  // document.querySelector('#preference').addEventListener('close', (event) => {
-  //   if (event.returnValue === 'Apply1') {
-  //     console.log('success');
-  //   }
-  // });
-
-  async function generateImage(prompt) {
-    console.log('generateImage with prompt: ', prompt);
+  async function generateImage(prompt, size = '1024x1024') {
     isProcessing = true;
     updateUI();
 
@@ -210,14 +210,15 @@
       body: JSON.stringify({
         prompt: prompt,
         n: 1,
-        size: '1024x1024',
+        size: size,
         response_format: 'b64_json'
       })
     }).then((response) => response.json());
 
     const im = Uint8Array.from(atob(resp.data[0].b64_json), c => c.charCodeAt(0))
+    const [width, height] = size.split('x').map(v => parseInt(v, 10))
     parent.postMessage({
-      pluginMessage: {type: 'image.data', im, prompt}
+      pluginMessage: {type: 'image.data', im, prompt, width, height}
     }, '*');
     isProcessing = false;
     updateUI();
@@ -228,6 +229,12 @@
     const form = e.target;
     const prompt = form.elements.namedItem('prompt');
     let promptText = prompt.value
+
+    if (promptText.length === 0) {
+      alert('Please input prompt text.')
+      prompt.focus();
+      return;
+    }
 
     // add modifiers if any is checked
     const modifiers = new Set([])
@@ -241,7 +248,7 @@
       promptText = promptText + ', ' + Array.from(modifiers).join(', ')
     }
 
-    await generateImage(promptText);
+    await generateImage(promptText, form.elements.namedItem('size').value);
   })
 
   onmessage = async (event) => {
@@ -315,6 +322,7 @@
   }
 
   input[type="text"],
+  select,
   textarea {
     padding-bottom: 0.5em;
     border: solid 1px var(--figma-color-border);
@@ -340,7 +348,10 @@
   }
 
   button[type="submit"] {
-    display: block;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5em;
     border: none;
     border-radius: 0.25em;
     background-color: var(--figma-color-bg-brand);
@@ -393,6 +404,7 @@
     padding: 0.5em 0;
     background-color: var(--figma-color-bg);
     display: flex;
+    justify-content: space-between;
     flex-direction: row;
     gap: 0.5em;
   }
